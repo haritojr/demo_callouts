@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión MP Ascensores - Acceso Técnico</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- LIBRERÍAS EXTERNAS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- FUENTE -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- ESTILOS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <!-- PANTALLA DE LOGIN (NUEVO) -->
+    <div id="login-screen" class="login-overlay">
+        <div class="login-card">
+            <img src="assets/logo.png" alt="MP Ascensores" class="login-logo">
+            <h2>Acceso Técnico</h2>
+            <p>Introduce tu ID de empleado para descargar tus rutas asignadas.</p>
+            
+            <div class="login-form">
+                <input type="text" id="loginId" placeholder="Ej: TEC-001" autocomplete="off">
+                <button id="loginBtn">
+                    Identificarse
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+            
+            <div class="login-footer">
+                <p>IDs Demo: <strong>TEC-001</strong>, <strong>TEC-002</strong>, <strong>TEC-003</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Carga (Cinemática) -->
+    <div id="loader-wrapper" class="hidden">
+        <div class="elevator-container">
+            <div class="elevator-frame">
+                <div class="elevator-interior">
+                    <img src="assets/logo.png" style="width: 80px; opacity: 0.8; margin-top: 150px;">
+                </div>
+                <div class="door door-left"></div>
+                <div class="door door-right"></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="bar"></div>
+            </div>
+            <p class="loader-text" id="loaderText">Autenticando...</p>
+        </div>
+    </div>
+
+    <!-- Contenedor Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- APP CONTAINER (Oculto por defecto hasta login) -->
+    <div id="app-container" class="app-container hidden">
+        
+        <!-- Encabezado -->
+        <header class="dashboard-header">
+            <div class="header-top">
+                <div class="header-titles">
+                    <h1>Informe Completo</h1>
+                    <div class="mp-line"></div>
+                    <!-- Información del usuario logueado -->
+                    <p id="user-welcome-msg">Bienvenido al Panel</p>
+                </div>
+
+                <div class="header-controls">
+                    <button id="themeToggle" class="btn-theme" title="Cambiar Tema">
+                        <svg class="icon-sun hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                        <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    </button>
+
+                    <!-- Botón Logout (Reemplaza al clear demo) -->
+                    <button id="logoutBtn" class="btn-icon" title="Cerrar Sesión">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filters-bar">
+                <div class="filter-group">
+                    <label>Desde:</label>
+                    <input type="date" id="dateStart" class="filter-date">
+                </div>
+                <div class="filter-group">
+                    <label>Hasta:</label>
+                    <input type="date" id="dateEnd" class="filter-date">
+                </div>
+                <button id="resetFilters" class="btn-text">Borrar Filtros</button>
+            </div>
+        </header>
+
+        <!-- Estado Inicial (Sin Selección) -->
+        <div id="emptyState" class="empty-state hidden">
+            <div class="icon-box">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <h2>Selecciona una obra del menú</h2>
+        </div>
+
+        <!-- CONTENIDO PRINCIPAL -->
+        <main id="mainContent" class="main-content hidden animate-fade-in">
+            <!-- (El resto del contenido es igual que antes: Tabs, Detalles, Gráficos...) -->
+            <nav class="tabs-nav">
+                <div class="nav-tab active" data-tab="detalle">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Gestión Detallada
+                </div>
+                <div class="nav-tab" data-tab="graficos">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055zM20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Analítica Global
+                </div>
+            </nav>
+
+            <section id="view-detalle" class="view-panel">
+                <div class="sidebar-menu">
+                    <div id="toggleMenuBtn" class="menu-header">
+                        <h3>
+                            <span class="text-mp-red">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                            Seleccionar Instalación
+                        </h3>
+                        <div class="menu-arrow text-mp-red">
+                            <svg id="menuChevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                    </div>
+
+                    <div id="liftMenuContent" class="menu-content hidden">
+                        <div class="search-box">
+                            <div class="search-icon">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </div>
+                            <input type="text" id="liftSearch" placeholder="Buscar ID, nombre o avería...">
+                        </div>
+                        <div id="liftList" class="lift-list"></div>
+                    </div>
+                </div>
+
+                <div class="detail-container">
+                    <div id="selectLiftPrompt" class="detail-placeholder">
+                        <div class="happy-lift-icon">
+                           <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1"><rect x="4" y="2" width="16" height="20" rx="2" /><path d="M12 4v0" stroke-width="2"/><path d="M8 8h.01M16 8h.01" stroke-width="3" stroke-linecap="round"/><path d="M9 16c1.5 1 4.5 1 6 0" stroke-linecap="round"/></svg>
+                        </div>
+                        <p>Selecciona una instalación para ver su historial</p>
+                    </div>
+
+                    <div id="liftDetailView" class="detail-content hidden">
+                        <div class="detail-header-modern">
+                            <div class="info-bloque">
+                                <div class="id-badge">ID: <span id="detailId"></span></div>
+                                <h2 id="detailName"></h2>
+                                <div class="meta-row">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Puesta en Marcha: <span id="detailDate"></span>
+                                </div>
+                            </div>
+                            <div class="stat-bloque" id="statBloqueColor">
+                                <div class="stat-label">Total Averías</div>
+                                <div id="detailCount" class="stat-number">0</div>
+                            </div>
+                        </div>
+                        <div class="local-kpi-bar">
+                             <div class="kpi-mini">
+                                <span>MTBF (Días entre fallos):</span>
+                                <strong id="detailMtbf" class="text-mp-red">--</strong>
+                             </div>
+                        </div>
+                        <div class="averias-scroll-area">
+                            <div id="averiasContainer" class="averias-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-graficos" class="view-panel hidden">
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-red-100 text-red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="kpi-label">Total Averías</p>
+                            <p id="stat-averias" class="kpi-value">0</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                         <div class="kpi-icon bg-slate-100 text-grey">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                        </div>
+                        <div>
+                            <p class="kpi-label">Ascensores Afectados</p>
+                            <p id="stat-lifts" class="kpi-value">0</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon bg-slate-100 text-grey">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <p class="kpi-label">MTBF Global (Días)</p>
+                            <p id="stat-mtbf" class="kpi-value">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid-layout">
+                    <div class="chart-card wide">
+                        <h3 class="chart-title">Evolución Temporal</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bottom-charts">
+                        <div class="chart-card">
+                            <h3 class="chart-title">Top 10 Reincidentes</h3>
+                            <div class="chart-wrapper">
+                                <canvas id="barChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3 class="chart-title">Distribución por Causa</h3>
+                            <div class="chart-wrapper donut-wrapper">
+                                <canvas id="pieChart"></canvas>
+                            </div>
+                            <div id="catLegend" class="chart-legend"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer>
+            <p>© 2026 MP Ascensores - Intelligence Dashboard</p>
+        </footer>
+    </div>
+
+    <!-- SCRIPTS ORDENADOS -->
+    <script src="js/users.js"></script> <!-- IMPORTANTE: Base de datos de usuarios -->
+    <script src="js/data-demo.js"></script>
+    <script src="js/ml-engine.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
