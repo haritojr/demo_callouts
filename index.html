@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión MP Ascensores - Acceso Técnico</title>
-    <link rel="icon" type="image/png" href="assets/logo.png">
+    <link rel="icon" type="image/png" href="assets/faviconmp-32x32.png">
 
-    <!-- LIBRERÍAS EXTERNAS -->
+    <!-- LIBRERÍAS EXTERNAS (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- FUENTE -->
+    <!-- FUENTE CORPORATIVA -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <!-- ESTILOS -->
@@ -18,7 +18,7 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE LOGIN (NUEVO) -->
+    <!-- 1. PANTALLA DE LOGIN -->
     <div id="login-screen" class="login-overlay">
         <div class="login-card">
             <img src="assets/logo.png" alt="MP Ascensores" class="login-logo">
@@ -34,17 +34,17 @@
             </div>
             
             <div class="login-footer">
-                <p>IDs Demo: <strong>TEC-001</strong>, <strong>TEC-002</strong>, <strong>TEC-003</strong></p>
+                <p>Sistema seguro de gestión de incidencias.</p>
             </div>
         </div>
     </div>
 
-    <!-- Pantalla de Carga (Cinemática) -->
+    <!-- 2. PANTALLA DE CARGA (CINEMÁTICA) -->
     <div id="loader-wrapper" class="hidden">
         <div class="elevator-container">
             <div class="elevator-frame">
                 <div class="elevator-interior">
-                    <img src="assets/logo.png" style="width: 80px; opacity: 0.8; margin-top: 150px;">
+                    <img src="assets/logo.png" style="width: 80px; opacity: 0.8; margin-top: 150px;" alt="Logo Interior">
                 </div>
                 <div class="door door-left"></div>
                 <div class="door door-right"></div>
@@ -57,10 +57,10 @@
         </div>
     </div>
 
-    <!-- Contenedor Toast -->
+    <!-- 3. CONTENEDOR DE NOTIFICACIONES -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- APP CONTAINER (Oculto por defecto hasta login) -->
+    <!-- 4. APLICACIÓN PRINCIPAL (Oculta al inicio) -->
     <div id="app-container" class="app-container hidden">
         
         <!-- Encabezado -->
@@ -69,19 +69,24 @@
                 <div class="header-titles">
                     <h1>Informe Completo</h1>
                     <div class="mp-line"></div>
-                    <!-- Información del usuario logueado -->
+                    <!-- Mensaje de bienvenida dinámico -->
                     <p id="user-welcome-msg">Bienvenido al Panel</p>
                 </div>
 
                 <div class="header-controls">
+                    <!-- Botón Tema -->
                     <button id="themeToggle" class="btn-theme" title="Cambiar Tema">
                         <svg class="icon-sun hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                         <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                     </button>
 
-                    <!-- Botón Logout (Reemplaza al clear demo) -->
+                    <!-- Botón Logout -->
                     <button id="logoutBtn" class="btn-icon" title="Cerrar Sesión">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    </button>
+                    <!-- Botón Limpiar Datos (Oculto) -->
+                    <button id="clearBtn" class="btn-icon hidden" title="Borrar datos">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </div>
             </div>
@@ -100,17 +105,17 @@
             </div>
         </header>
 
-        <!-- Estado Inicial (Sin Selección) -->
-        <div id="emptyState" class="empty-state hidden">
-            <div class="icon-box">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            </div>
-            <h2>Selecciona una obra del menú</h2>
+        <!-- Estado Inicial (Cuando no hay datos cargados) -->
+        <div id="emptyState" class="empty-list-state hidden" style="padding: 4rem; border: 2px dashed #e2e8f0; border-radius: 1rem;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <h2>No hay datos disponibles</h2>
+            <p>Intenta importar un archivo o revisa tu conexión.</p>
         </div>
 
         <!-- CONTENIDO PRINCIPAL -->
         <main id="mainContent" class="main-content hidden animate-fade-in">
-            <!-- (El resto del contenido es igual que antes: Tabs, Detalles, Gráficos...) -->
+            
+            <!-- Pestañas de Navegación -->
             <nav class="tabs-nav">
                 <div class="nav-tab active" data-tab="detalle">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -122,7 +127,9 @@
                 </div>
             </nav>
 
+            <!-- VISTA DETALLE -->
             <section id="view-detalle" class="view-panel">
+                <!-- Menú Lateral -->
                 <div class="sidebar-menu">
                     <div id="toggleMenuBtn" class="menu-header">
                         <h3>
@@ -143,10 +150,24 @@
                             </div>
                             <input type="text" id="liftSearch" placeholder="Buscar ID, nombre o avería...">
                         </div>
-                        <div id="liftList" class="lift-list"></div>
+                        
+                        <!-- NUEVA BARRA DE ORDENACIÓN -->
+                        <div class="sort-options">
+                            <label for="sortSelect">Ordenar por:</label>
+                            <select id="sortSelect" class="sort-select">
+                                <option value="id">ID Obra</option>
+                                <option value="date_desc">Fecha (Más reciente)</option>
+                                <option value="date_asc">Fecha (Más antigua)</option>
+                            </select>
+                        </div>
+
+                        <div id="liftList" class="lift-list">
+                            <!-- Lista generada por JS -->
+                        </div>
                     </div>
                 </div>
 
+                <!-- Detalle -->
                 <div class="detail-container">
                     <div id="selectLiftPrompt" class="detail-placeholder">
                         <div class="happy-lift-icon">
@@ -170,12 +191,15 @@
                                 <div id="detailCount" class="stat-number">0</div>
                             </div>
                         </div>
+
                         <div class="local-kpi-bar">
                              <div class="kpi-mini">
-                                <span>MTBF (Días entre fallos):</span>
+                                <!-- CAMBIO AQUI: Rótulo cambiado de MTBF a Ratio -->
+                                <span>Ratio (Avisos/Mes):</span>
                                 <strong id="detailMtbf" class="text-mp-red">--</strong>
                              </div>
                         </div>
+                        
                         <div class="averias-scroll-area">
                             <div id="averiasContainer" class="averias-list"></div>
                         </div>
@@ -183,6 +207,7 @@
                 </div>
             </section>
 
+            <!-- VISTA GRÁFICOS -->
             <section id="view-graficos" class="view-panel hidden">
                 <div class="kpi-grid">
                     <div class="kpi-card">
@@ -205,10 +230,11 @@
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-icon bg-slate-100 text-grey">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
                         <div>
-                            <p class="kpi-label">MTBF Global (Días)</p>
+                            <!-- CAMBIO AQUI: Rótulo cambiado de MTBF a Ratio -->
+                            <p class="kpi-label">Ratio Avisos / U.F.</p>
                             <p id="stat-mtbf" class="kpi-value">0</p>
                         </div>
                     </div>
@@ -247,11 +273,11 @@
         </footer>
     </div>
 
-    <!-- SCRIPTS ORDENADOS -->
-    <script src="js/users.js"></script> <!-- IMPORTANTE: Base de datos de usuarios -->
-    <script src="js/data-demo.js"></script>
-    <script src="js/ml-engine.js"></script>
+    <!-- SCRIPTS -->
+    <script src="js/ml-engine.js"></script> 
     <script src="js/charts.js"></script>
     <script src="js/main.js"></script>
+    <!-- Eliminar input file oculto para evitar errores de referencia si ya no se usa -->
+    <input type="file" id="fileInput" accept=".xlsx, .xls, .xlsm, .csv, .ods" style="display:none">
 </body>
 </html>
